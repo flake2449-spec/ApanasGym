@@ -2,151 +2,215 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ApanasGym App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #ffffff);
+            --text-color: var(--tg-theme-text-color, #000000);
+            --hint-color: var(--tg-theme-hint-color, #999999);
+            --sec-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            --btn-color: var(--tg-theme-button-color, #2481cc);
+            --btn-text: var(--tg-theme-button-text-color, #ffffff);
+        }
+
         body {
-            font-family: sans-serif;
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            -webkit-user-select: none;
+            user-select: none;
         }
-        h2 { color: var(--tg-theme-hint-color); }
-        .container { width: 100%; max-width: 400px; }
+
+        .container { width: 100%; max-width: 500px; margin: 0 auto; }
         
+        h2 { text-align: center; margin-bottom: 20px; color: var(--btn-color); }
+        h3 { border-bottom: 1px solid var(--hint-color); padding-bottom: 5px; margin-top: 20px; }
+
         .card {
-            background: var(--tg-theme-secondary-bg-color);
+            background: var(--sec-bg);
             border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
+            padding: 18px;
+            margin-bottom: 12px;
             cursor: pointer;
-            border: 1px solid rgba(0,0,0,0.1);
-            transition: transform 0.1s;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
         }
-        .card:active { transform: scale(0.98); }
-        
+        .card:active { opacity: 0.7; }
+        .card::after { content: '›'; font-size: 20px; color: var(--hint-color); }
+
         .input-group {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 15px;
+            margin: 25px 0;
         }
+        .input-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label { font-size: 12px; color: var(--hint-color); margin-bottom: 5px; margin-left: 5px; }
+        
         input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--tg-theme-hint-color);
-            background: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--hint-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 18px;
+            text-align: center;
         }
-        button {
+
+        .main-btn {
             width: 100%;
-            padding: 12px;
-            background: var(--tg-theme-button-color);
-            color: var(--tg-theme-button-text-color);
+            padding: 16px;
+            background: var(--btn-color);
+            color: var(--btn-text);
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: bold;
-            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        .back-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--hint-color);
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 14px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>💪 ApanasGym Трекер</h2>
-        
-        <div id="category-selection">
-    <h2>Выберите группу:</h2>
-    </div>
-
-<div id="exercise-selection" style="display:none;">
-    <h2 id="category-title"></h2>
-    <div id="exercise-buttons">
+        <div id="screen-categories">
+            <h2>ApanasGym</h2>
+            <div id="category-list"></div>
         </div>
-    <button style="background:none; color:var(--tg-theme-hint-color);" onclick="showCategories()">⬅ Назад к группам</button>
-</div>
 
-<div id="recording" style="display:none;">
-    <h3 id="selected-title"></h3>
-    <div class="input-group">
-        <input type="number" id="weight" placeholder="Вес (кг)" step="0.5" inputmode="decimal">
-        <input type="number" id="reps" placeholder="Повторы" inputmode="numeric">
+        <div id="screen-exercises" style="display:none;">
+            <h2 id="current-cat-name">Упражнения</h2>
+            <div id="exercise-list"></div>
+            <button class="back-btn" onclick="showCategories()">⬅ Назад к группам</button>
+        </div>
+
+        <div id="screen-input" style="display:none;">
+            <h2 id="current-ex-name">Упражнение</h2>
+            <div class="input-group">
+                <div class="input-field">
+                    <label>ВЕС (КГ)</label>
+                    <input type="number" id="weight" placeholder="0" step="0.5" inputmode="decimal">
+                </div>
+                <div class="input-field">
+                    <label>ПОВТОРЫ</label>
+                    <input type="number" id="reps" placeholder="0" inputmode="numeric">
+                </div>
+            </div>
+            <button class="main-btn" onclick="sendData()">СОХРАНИТЬ ПОДХОД</button>
+            <button class="back-btn" onclick="showExercises()">⬅ К списку упражнений</button>
+        </div>
     </div>
-    <button onclick="sendData()">Сохранить подход</button>
-    <button style="background:none; color:var(--tg-theme-hint-color);" onclick="showExercises()">⬅ К списку упражнений</button>
-</div>
 
     <script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем приложение
 
-    // Твой справочник упражнений (скопируй сюда свои данные из Python)
-    const exercisesData = {
-    "Грудь": ["Жим лежа", "Жим гантелей", "Брусья", "Разводка"],
-    "Спина": ["Подтягивания", "Тяга в наклоне", "Становая тяга", "Тяга блока"],
-    "Ноги": ["Приседания", "Жим ногами", "Выпады"],
-    "Плечи": ["Жим арнольда", "Махи гантелей", "Тяга к подбородку"]
-};
+        // ТВОИ ДАННЫЕ (можно дополнять здесь)
+        const exercisesData = {
+            "Грудь": ["Жим лежа", "Жим гантелей", "Разводка", "Брусья"],
+            "Спина": ["Подтягивания", "Тяга штанги", "Становая тяга", "Тяга блока"],
+            "Ноги": ["Приседания", "Жим ногами", "Выпады", "Мертвая тяга"],
+            "Плечи": ["Жим арнольда", "Махи в стороны", "Тяга к подбородку"],
+            "Руки": ["Бицепс штанга", "Трицепс блок", "Молотки"]
+        };
 
-let currentCategory = "";
-let currentEx = "";
+        let selectedCategory = "";
+        let selectedExercise = "";
 
-// Показ главного меню (Группы мышц)
-function showCategories() {
-    const container = document.getElementById('category-selection');
-    container.innerHTML = '<h2>Выберите группу:</h2>';
-    
-    for (let category in exercisesData) {
-        let card = document.createElement('div');
-        card.className = 'card';
-        card.innerText = category;
-        card.onclick = () => showExercises(category);
-        container.appendChild(card);
-    }
-    
-    document.getElementById('category-selection').style.display = 'block';
-    document.getElementById('exercise-selection').style.display = 'none';
-    document.getElementById('recording').style.display = 'none';
-}
+        // 1. Отрисовка категорий
+        function showCategories() {
+            const list = document.getElementById('category-list');
+            list.innerHTML = '';
+            for (let cat in exercisesData) {
+                let div = document.createElement('div');
+                div.className = 'card';
+                div.innerText = cat;
+                div.onclick = () => {
+                    selectedCategory = cat;
+                    showExercises();
+                };
+                list.appendChild(div);
+            }
+            switchScreen('screen-categories');
+        }
 
-// Показ упражнений конкретной группы
-function showExercises(category) {
-    if (category) currentCategory = category;
-    
-    document.getElementById('category-title').innerText = currentCategory;
-    const btnContainer = document.getElementById('exercise-buttons');
-    btnContainer.innerHTML = ''; // Очистка старых кнопок
+        // 2. Отрисовка упражнений
+        function showExercises() {
+            document.getElementById('current-cat-name').innerText = selectedCategory;
+            const list = document.getElementById('exercise-list');
+            list.innerHTML = '';
+            
+            exercisesData[selectedCategory].forEach(ex => {
+                let div = document.createElement('div');
+                div.className = 'card';
+                div.innerText = ex;
+                div.onclick = () => {
+                    selectedExercise = ex;
+                    showInput();
+                };
+                list.appendChild(div);
+            });
+            switchScreen('screen-exercises');
+        }
 
-    exercisesData[currentCategory].forEach(ex => {
-        let card = document.createElement('div');
-        card.className = 'card';
-        card.innerText = ex;
-        card.onclick = () => selectEx(ex);
-        btnContainer.appendChild(card);
-    });
+        // 3. Экран ввода
+        function showInput() {
+            document.getElementById('current-ex-name').innerText = selectedExercise;
+            document.getElementById('weight').value = '';
+            document.getElementById('reps').value = '';
+            switchScreen('screen-input');
+        }
 
-    document.getElementById('category-selection').style.display = 'none';
-    document.getElementById('exercise-selection').style.display = 'block';
-    document.getElementById('recording').style.display = 'none';
-}
+        // Переключатель экранов
+        function switchScreen(id) {
+            document.getElementById('screen-categories').style.display = 'none';
+            document.getElementById('screen-exercises').style.display = 'none';
+            document.getElementById('screen-input').style.display = 'none';
+            document.getElementById(id).style.display = 'block';
+        }
 
-// Переход к вводу веса
-function selectEx(name) {
-    currentEx = name;
-    document.getElementById('exercise-selection').style.display = 'none';
-    document.getElementById('recording').style.display = 'block';
-    document.getElementById('selected-title').innerText = name;
-}
+        // ОТПРАВКА ДАННЫХ
+        function sendData() {
+            const w = document.getElementById('weight').value;
+            const r = document.getElementById('reps').value;
 
-// Запуск при старте
-showCategories();
+            if (!w || !r) {
+                tg.showAlert("Пожалуйста, введите вес и повторения");
+                return;
+            }
 
-    // Запускаем отрисовку при загрузке
-    renderMenu();
-</script>
+            const result = {
+                exercise: selectedExercise,
+                weight: parseFloat(w),
+                reps: parseInt(r)
+            };
+
+            // Самая важная строка: отправка JSON боту
+            tg.sendData(JSON.stringify(result));
+        }
+
+        // Инициализация
+        showCategories();
+    </script>
 </body>
 </html>
