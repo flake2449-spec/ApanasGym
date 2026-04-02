@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApanasGym App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h2 { color: var(--tg-theme-hint-color); }
+        .container { width: 100%; max-width: 400px; }
+        
+        .card {
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        .card:active { transform: scale(0.98); }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--tg-theme-hint-color);
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💪 ApanasGym Трекер</h2>
+        
+        <div id="category-selection">
+    <h2>Выберите группу:</h2>
+    </div>
+
+<div id="exercise-selection" style="display:none;">
+    <h2 id="category-title"></h2>
+    <div id="exercise-buttons">
+        </div>
+    <button style="background:none; color:var(--tg-theme-hint-color);" onclick="showCategories()">⬅ Назад к группам</button>
+</div>
+
+<div id="recording" style="display:none;">
+    <h3 id="selected-title"></h3>
+    <div class="input-group">
+        <input type="number" id="weight" placeholder="Вес (кг)" step="0.5" inputmode="decimal">
+        <input type="number" id="reps" placeholder="Повторы" inputmode="numeric">
+    </div>
+    <button onclick="sendData()">Сохранить подход</button>
+    <button style="background:none; color:var(--tg-theme-hint-color);" onclick="showExercises()">⬅ К списку упражнений</button>
+</div>
+
+    <script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Твой справочник упражнений (скопируй сюда свои данные из Python)
+    const exercisesData = {
+    "Грудь": ["Жим лежа", "Жим гантелей", "Брусья", "Разводка"],
+    "Спина": ["Подтягивания", "Тяга в наклоне", "Становая тяга", "Тяга блока"],
+    "Ноги": ["Приседания", "Жим ногами", "Выпады"],
+    "Плечи": ["Жим арнольда", "Махи гантелей", "Тяга к подбородку"]
+};
+
+let currentCategory = "";
+let currentEx = "";
+
+// Показ главного меню (Группы мышц)
+function showCategories() {
+    const container = document.getElementById('category-selection');
+    container.innerHTML = '<h2>Выберите группу:</h2>';
+    
+    for (let category in exercisesData) {
+        let card = document.createElement('div');
+        card.className = 'card';
+        card.innerText = category;
+        card.onclick = () => showExercises(category);
+        container.appendChild(card);
+    }
+    
+    document.getElementById('category-selection').style.display = 'block';
+    document.getElementById('exercise-selection').style.display = 'none';
+    document.getElementById('recording').style.display = 'none';
+}
+
+// Показ упражнений конкретной группы
+function showExercises(category) {
+    if (category) currentCategory = category;
+    
+    document.getElementById('category-title').innerText = currentCategory;
+    const btnContainer = document.getElementById('exercise-buttons');
+    btnContainer.innerHTML = ''; // Очистка старых кнопок
+
+    exercisesData[currentCategory].forEach(ex => {
+        let card = document.createElement('div');
+        card.className = 'card';
+        card.innerText = ex;
+        card.onclick = () => selectEx(ex);
+        btnContainer.appendChild(card);
+    });
+
+    document.getElementById('category-selection').style.display = 'none';
+    document.getElementById('exercise-selection').style.display = 'block';
+    document.getElementById('recording').style.display = 'none';
+}
+
+// Переход к вводу веса
+function selectEx(name) {
+    currentEx = name;
+    document.getElementById('exercise-selection').style.display = 'none';
+    document.getElementById('recording').style.display = 'block';
+    document.getElementById('selected-title').innerText = name;
+}
+
+// Запуск при старте
+showCategories();
+
+    // Запускаем отрисовку при загрузке
+    renderMenu();
+</script>
+</body>
+</html>
