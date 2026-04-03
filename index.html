@@ -1,216 +1,130 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApanasGym App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: var(--tg-theme-bg-color, #ffffff);
-            --text-color: var(--tg-theme-text-color, #000000);
-            --hint-color: var(--tg-theme-hint-color, #999999);
-            --sec-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            --btn-color: var(--tg-theme-button-color, #2481cc);
-            --btn-text: var(--tg-theme-button-text-color, #ffffff);
+            --bg: var(--tg-theme-bg-color, #ffffff);
+            --text: var(--tg-theme-text-color, #000000);
+            --btn: var(--tg-theme-button-color, #2481cc);
+            --btn-txt: var(--tg-theme-button-text-color, #ffffff);
+            --sec: var(--tg-theme-secondary-bg-color, #f0f0f0);
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .container { width: 100%; max-width: 500px; margin: 0 auto; }
-        
-        h2 { text-align: center; margin-bottom: 20px; color: var(--btn-color); }
-        h3 { border-bottom: 1px solid var(--hint-color); padding-bottom: 5px; margin-top: 20px; }
-
-        .card {
-            background: var(--sec-bg);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-        }
-        .card:active { opacity: 0.7; }
-        .card::after { content: '›'; font-size: 20px; color: var(--hint-color); }
-
-        .input-group {
-            display: flex;
-            gap: 15px;
-            margin: 25px 0;
-        }
-        .input-field {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        label { font-size: 12px; color: var(--hint-color); margin-bottom: 5px; margin-left: 5px; }
-        
-        input {
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid var(--hint-color);
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .main-btn {
-            width: 100%;
-            padding: 16px;
-            background: var(--btn-color);
-            color: var(--btn-text);
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .back-btn {
-            width: 100%;
-            background: none;
-            border: none;
-            color: var(--hint-color);
-            padding: 15px;
-            margin-top: 10px;
-            font-size: 14px;
-            cursor: pointer;
-        }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+        .card { background: var(--sec); padding: 15px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
+        .card:active { opacity: 0.6; background: #ddd; }
+        input { width: 80%; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 18px; text-align: center; }
+        .save-btn { width: 100%; padding: 15px; background: var(--btn); color: var(--btn-txt); border: none; border-radius: 10px; font-weight: bold; font-size: 16px; }
+        .save-btn:active { transform: scale(0.98); }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div id="screen-categories">
-            <h2>ApanasGym</h2>
-            <div id="category-list"></div>
-        </div>
 
-        <div id="screen-exercises" style="display:none;">
-            <h2 id="current-cat-name">Упражнения</h2>
-            <div id="exercise-list"></div>
-            <button class="back-btn" onclick="showCategories()">⬅ Назад к группам</button>
-        </div>
+    <div id="screen-cats">
+        <h3>Группа мышц:</h3>
+        <div id="cat-list"></div>
+    </div>
 
-        <div id="screen-input" style="display:none;">
-            <h2 id="current-ex-name">Упражнение</h2>
-            <div class="input-group">
-                <div class="input-field">
-                    <label>ВЕС (КГ)</label>
-                    <input type="number" id="weight" placeholder="0" step="0.5" inputmode="decimal">
-                </div>
-                <div class="input-field">
-                    <label>ПОВТОРЫ</label>
-                    <input type="number" id="reps" placeholder="0" inputmode="numeric">
-                </div>
-            </div>
-            <button class="main-btn" onclick="sendData()">СОХРАНИТЬ ПОДХОД</button>
-            <button class="back-btn" onclick="showExercises()">⬅ К списку упражнений</button>
-        </div>
+    <div id="screen-exs" class="hidden">
+        <h3 id="cat-name"></h3>
+        <div id="ex-list"></div>
+        <button onclick="showCats()" style="background:none; border:none; color:gray; width:100%; padding:10px;">⬅ Назад</button>
+    </div>
+
+    <div id="screen-input" class="hidden">
+        <h3 id="ex-name"></h3>
+        <input type="number" id="w" placeholder="Вес (кг)" inputmode="decimal">
+        <input type="number" id="r" placeholder="Повторы" inputmode="numeric">
+        <button class="save-btn" id="main-save-btn" onclick="sendData()">СОХРАНИТЬ</button>
+        <button onclick="showExs()" style="background:none; border:none; color:gray; width:100%; padding:10px;">⬅ Назад</button>
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем приложение
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-        // ТВОИ ДАННЫЕ (можно дополнять здесь)
-        const exercisesData = {
-            "Грудь": ["Жим лежа", "Жим гантелей", "Разводка", "Брусья"],
-            "Спина": ["Подтягивания", "Тяга штанги", "Становая тяга", "Тяга блока"],
-            "Ноги": ["Приседания", "Жим ногами", "Выпады", "Мертвая тяга"],
-            "Плечи": ["Жим арнольда", "Махи в стороны", "Тяга к подбородку"],
-            "Руки": ["Бицепс штанга", "Трицепс блок", "Молотки"]
+        const data = {
+            "Грудь": ["Жим лежа", "Жим гантелей"],
+            "Спина": ["Подтягивания", "Становая тяга"],
+            "Ноги": ["Приседания", "Выпады"]
         };
 
-        let selectedCategory = "";
-        let selectedExercise = "";
+        let curCat = "";
+        let curEx = "";
 
-        // 1. Отрисовка категорий
-        function showCategories() {
-            const list = document.getElementById('category-list');
+        function showCats() {
+            const list = document.getElementById('cat-list');
             list.innerHTML = '';
-            for (let cat in exercisesData) {
-                let div = document.createElement('div');
-                div.className = 'card';
-                div.innerText = cat;
-                div.onclick = () => {
-                    selectedCategory = cat;
-                    showExercises();
-                };
-                list.appendChild(div);
+            for (let c in data) {
+                let d = document.createElement('div');
+                d.className = 'card';
+                d.innerText = c;
+                d.onclick = function() { curCat = c; showExs(); };
+                list.appendChild(d);
             }
-            switchScreen('screen-categories');
+            document.getElementById('screen-cats').classList.remove('hidden');
+            document.getElementById('screen-exs').classList.add('hidden');
+            document.getElementById('screen-input').classList.add('hidden');
         }
 
-        // 2. Отрисовка упражнений
-        function showExercises() {
-            document.getElementById('current-cat-name').innerText = selectedCategory;
-            const list = document.getElementById('exercise-list');
+        function showExs() {
+            document.getElementById('cat-name').innerText = curCat;
+            const list = document.getElementById('ex-list');
             list.innerHTML = '';
-            
-            exercisesData[selectedCategory].forEach(ex => {
-                let div = document.createElement('div');
-                div.className = 'card';
-                div.innerText = ex;
-                div.onclick = () => {
-                    selectedExercise = ex;
-                    showInput();
-                };
-                list.appendChild(div);
+            data[curCat].forEach(e => {
+                let d = document.createElement('div');
+                d.className = 'card';
+                d.innerText = e;
+                d.onclick = function() { curEx = e; showInput(); };
+                list.appendChild(d);
             });
-            switchScreen('screen-exercises');
+            document.getElementById('screen-cats').classList.add('hidden');
+            document.getElementById('screen-exs').classList.remove('hidden');
+            document.getElementById('screen-input').classList.add('hidden');
         }
 
-        // 3. Экран ввода
         function showInput() {
-            document.getElementById('current-ex-name').innerText = selectedExercise;
-            document.getElementById('weight').value = '';
-            document.getElementById('reps').value = '';
-            switchScreen('screen-input');
+            document.getElementById('ex-name').innerText = curEx;
+            document.getElementById('screen-exs').classList.add('hidden');
+            document.getElementById('screen-input').classList.remove('hidden');
         }
 
-        // Переключатель экранов
-        function switchScreen(id) {
-            document.getElementById('screen-categories').style.display = 'none';
-            document.getElementById('screen-exercises').style.display = 'none';
-            document.getElementById('screen-input').style.display = 'none';
-            document.getElementById(id).style.display = 'block';
-        }
-
-        // ОТПРАВКА ДАННЫХ
         function sendData() {
-            const w = document.getElementById('weight').value;
-            const r = document.getElementById('reps').value;
+    const weight = document.getElementById('w').value;
+    const reps = document.getElementById('r').value;
 
-            if (!w || !r) {
-                tg.showAlert("Пожалуйста, введите вес и повторения");
-                return;
-            }
+    if (!weight || !reps) {
+        tg.showAlert("Заполни поля!");
+        return;
+    }
 
-            const result = {
-                exercise: selectedExercise,
-                weight: parseFloat(w),
-                reps: parseInt(r)
-            };
+    const payload = JSON.stringify({
+        exercise: curEx,
+        weight: parseFloat(weight),
+        reps: parseInt(reps)
+    });
 
-            // Самая важная строка: отправка JSON боту
-            tg.sendData(JSON.stringify(result));
+    // ПРОВЕРКА: Разрешена ли отправка данных?
+    if (tg.initData === "") {
+        tg.showAlert("Ошибка: Приложение запущено как обычный сайт. Отправка данных запрещена. Запустите через кнопку Menu в боте!");
+    } else {
+        try {
+            tg.sendData(payload);
+            // Если через 500мс приложение не закрылось — значит команда игнорируется системой
+            setTimeout(() => {
+                tg.showAlert("Команда отправлена, но Telegram её проигнорировал. Проверьте настройки BotFather.");
+            }, 500);
+        } catch (e) {
+            tg.showAlert("Ошибка при отправке: " + e);
         }
+    }
+}
 
-        // Инициализация
-        showCategories();
+        // Старт
+        showCats();
     </script>
 </body>
 </html>
